@@ -80,6 +80,6 @@ class Config:
                 break
 
 if __name__== "__main__":
-    info = Config(r'D:\task_sync_src.conf').parse()
+    info = Config(r'simpleconf.py').parse()
     print info
     
