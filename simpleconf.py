@@ -2,20 +2,20 @@ import os
 import sys
 import shlex
 
-class TaskInfo:
+class info:
     def __str__(self):
         output = ''
         for k,v in self.__dict__.items():
-           output += "\t%s = [%s]\n" % (k,v)
+           output += "\t%s = %s\n" % (k,v)
         return output
 
-class BadConfException:
+class BadConfException(Exception):
     def __init__(self, msg):
         self.msg = msg
     def __str__(self):
         return self.msg
         
-class Config:
+class simpleconfig:
     '''
     SYNTAX:
         FILE      :=    ITEMS
@@ -29,14 +29,16 @@ class Config:
     def __init__(self, filename):
         self.f   = open(filename)
         self.lex = shlex.shlex(self.f, posix=False)
+        self.config   = info() 
         
     def _ITEM(self):
         key = self.lex.get_token()
+        print key
         if key:
             sep = self.lex.get_token()
+            print sep
             if not sep in [ ':', '=' ]:
-                raise BadConfException('%s: Bad Sep Char.'%
-                        self.lex.error_leader())
+                raise BadConfException( '`%s` is bad Sep Char.'% sep)
             value = self._VALUE()
             return (key, value)
         else:
@@ -66,20 +68,19 @@ class Config:
             elif c == ',':
                 c = self.lex.get_token()
             else:
-                raise BadConfException('%s: except a \',\' or \']\' or \'{\'',
-                        self.lex.error_leader()) 
+                raise BadConfException('except a \',\' or \']\' or \'{\', not: ' + c) 
         return array
         
     def parse(self):
-        info = TaskInfo();
         while True:
             key, value = self._ITEM()
             if key:
-                setattr(info, key, value)
+                setattr(self.config, key, value)
             else:
                 break
+        return self.config
 
 if __name__== "__main__":
-    info = Config(r'simpleconf.py').parse()
+    info = simpleconfig(r'simpleconf.conf').parse()
     print info
     
