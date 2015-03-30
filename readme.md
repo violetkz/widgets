@@ -1,9 +1,34 @@
 widgets
 =======
 
-There are some code or utilities worte by myself.
-* simpleconfig.py  
-  it is very simple config file parser 
-* hc.py
-  it is the utilty to fix '#include' statament in C/CPP
+A collection of code/utilities which wrote by myself.
+
+# simpleconfig.py 
+it is a very simple config file parser
+
+    #import simpleconfig
+
+    info = simpleconfig(r'simpleconf.conf').parse()
+    print info
+
+# hc.py
+it is a utility to to fix '#include' statament in C/CPP
+
+    $ ./hc.py --help
+    usage: hc.py [-h] [-c CONFIGFILE] [-v] [-p] [-w] [target [target ...]]
+
+    the script for fixing '#include' statament.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+
+    options:
+      -c CONFIGFILE, --configfile CONFIGFILE
+                            config file name
+      -v                    version
+      -p, --report          save report into file 'report.txt'
+      -w, --replace         modify original file, no backup file
+      target                src filename or directory
+    
+    
 

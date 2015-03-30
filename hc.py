@@ -5,7 +5,7 @@
     the utilty to fix '#include' statament in C/CPP
 """
 __version__ = '0.0.1'
-__author__  = 'Kai Zhou'
+__author__  = 'Ken'
 __date__    = '2015-02-27 17:44:51'
 
 import re,sys,os
@@ -174,7 +174,7 @@ def parse_option():
     g1.add_argument('-v', action='store_true', help='version')
     g1.add_argument('-p', '--report', action='store_true',
             default = False,
-            help = 'change reporter')
+            help = 'save report into file \'report.txt\'')
     g1.add_argument('-w', '--replace', action='store_true',
             default = False,
             help = 'modify original file, no backup file')
