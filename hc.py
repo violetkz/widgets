@@ -11,12 +11,9 @@ __date__    = '2015-02-27 17:44:51'
 import re,sys,os
 
 def read_config(config_filename):
-    try:
-        gdict = {}
-        execfile(config_filename, gdict)
-        return gdict
-    except Exception as e:
-        print str(e)
+    gdict = {}
+    execfile(config_filename, gdict)
+    return gdict
 
 class config_exception(Exception):
     def __init__(self, msg):
@@ -185,27 +182,32 @@ def parse_option():
     return args
 
 if __name__=="__main__":
-    args = parse_option()
-    if (args.v):
-        print "verion: " + __version__
+    try:
+        args = parse_option()
+        if (args.v):
+            print "verion: " + __version__
+            sys.exit(0)
+        report_fobj = open('report.txt', 'w') if args.report else sys.stdout
+                
+        config = read_config(args.configfile)
+        rules = config['rules']
+        basepaths = config['include_base_path']
+        
+        fixer = cpp_header_checker([
+                header_replace_fixer(rules), 
+                header_relative_path_fixer(basepaths)
+                ], 
+                logger = report_fobj,
+                replace= args.replace)
+        
+        for p in args.target:
+            if os.path.isfile(p): fiexer.check(p)
+            elif os.path.isdir(p):
+                for dir, _, files in os.walk(p):
+                    for f in files:
+                        fixer.check(os.path.join(dir, f))
+    except Exception as e:
+        print "*Error* recieved a exception.\n-- " + str(e)
+        sys.exit(1) 
+    else: 
         sys.exit(0)
-    report_fobj = open('report.txt', 'w') if args.report else sys.stdout
-            
-    config = read_config(args.configfile)
-    rules = config['rules']
-    basepaths = config['include_base_path']
-    
-    fixer = cpp_header_checker([
-            header_replace_fixer(rules), 
-            header_relative_path_fixer(basepaths)
-            ], 
-            logger = report_fobj,
-            replace= args.replace)
-    
-    for p in args.target:
-        if os.path.isfile(p): fiexer.check(p)
-        elif os.path.isdir(p):
-            for dir, _, files in os.walk(p):
-                for f in files:
-                    fixer.check(os.path.join(dir, f))
-    sys.exit(0)
