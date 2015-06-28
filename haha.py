@@ -136,33 +136,32 @@ class decoder:
         l = 0
         while l < len(coded_content):
             curr_char = coded_content[l]
-            print "--curr char: " + curr_char
             l += 1
             if (curr_char == self.left_char):
                 curr_node = curr_node.left 
             elif (curr_char == self.right_char):
                 curr_node = curr_node.right
             else:
-                print 'wrong code:' + curr_node
+                sys.stderr.write('unknown code: %s \n' % (curr_node))
+                break
 
             if not curr_node: 
-                print "someting wrong"
+                sys.stderr.write('incorrect code\n')
                 break
             elif curr_node.is_left_node():
-                print "found left node:" + curr_node.name
                 out_file_object.write(curr_node.name)
                 curr_node = head_node
 
 def encode_test(filename):
     #Test
     encoder_0_1 = encoder(freq_tbl)
-    with open('udev.c','rb') as f:
+    with open(filename,'rb') as f:
         with open('fun.c--','wb') as w:
             encoder_0_1.encode(f,w)
 
 def decode_test(filename):
     decode_0_1 = decoder(freq_tbl)
-    with open('fun.c--','r') as f:
+    with open(filename,'r') as f:
         with open('fun.c~~','wb') as w:
             decode_0_1.decode(f,w)
 
