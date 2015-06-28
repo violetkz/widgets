@@ -51,11 +51,14 @@ freq_tbl = [
 
 
 class node:
-    def __init__(self, name, value, left_child, right_child):
+    def __init__(self, name, value, left_child = None, right_child = None):
         self.name  = name
         self.value = value
         self.left  = left_child
         self.right = right_child
+
+    def is_left_node(self):
+        return (self.left == None) and (self.right == None)
         
     def __str__(self):
         s = "name: %s, value: %s\n  left: %s \n right: %s \n" % (
@@ -67,55 +70,102 @@ class node:
         return s
         
 
-## convert k,v pair to node object
-node_list = [node(name, value, None, None) for name, value in freq_tbl]
+def build_hufuman_tree(freq_tbl):
+    ## convert k,v pair to node object
+    node_list = [node(name, value, None, None) for name, value in freq_tbl]
 
-while len(node_list) > 1:
-    ## sort by frequecy
-    node_list.sort(key = lambda x : x.value) 
-    left  = node_list[0]
-    right = node_list[1]
-    
-    ## create new node 
-    new_node = node(left.name + right.name, left.value + left.value, left, right)
-    ## append new_node to node_list and remove left & right from node_list
-    node_list.append(new_node)
-    node_list.remove(left)
-    node_list.remove(right)
-
-#for a in  node_list:
-#    print str(a)
-print len(node_list)
-print str(node_list[0])
-
-hufuman_tree_root_node = node_list[0]
-
-left_node_char  = '0'
-ritht_node_char = '1'
-
-hf_code = ''
-hf_code_tbl = {}
-def make_code(node, hf_code = ''):
-    if node.left:
-        hf_code += left_node_char
-        make_code(node.left, hf_code)
-
-    if node.right: 
-        hf_code += ritht_node_char
-        make_code(node.right, hf_code)
-
-    if (not node.left) and (not node.right):
-        hf_code_tbl[node.name] = hf_code
+    while len(node_list) > 1:
+        ## sort by frequecy
+        node_list.sort(key = lambda x : x.value) 
+        left  = node_list[0]
+        right = node_list[1]
         
+        ## create new node 
+        new_node = node(left.name + right.name, left.value + left.value, left, right)
+        ## append new_node to node_list and remove left & right from node_list
+        node_list.append(new_node)
+        node_list.remove(left)
+        node_list.remove(right)
 
-make_code(hufuman_tree_root_node, '0')
-print hf_code_tbl
+    #print len(node_list)
+    #print str(node_list[0])
+    tree_root_node = node_list[0]
+    return tree_root_node
 
-#Test
-with open('udev.c','rb') as f:
-    #data = f.read()
-    with open('fun.c--','wb') as w:
-        for line in f.readlines():
-            for a in line:
-                w.write(hf_code_tbl[a])
-            w.write('\n')
+class encoder:
+    def __init__(self, freq_tbl, left_char = '0', right_char = '1'):
+        self.hufuman_tree_root_node = build_hufuman_tree(freq_tbl)
+        self.code_tbl = self.__generate_code_dict(
+                self.hufuman_tree_root_node, left_char, right_char)
+
+    def __generate_code_dict(self, hufuman_tree_root_node, left_node_char, ritht_node_char):
+        hf_code_tbl = {}
+        def make_code(node, hf_code = ''):
+            if node.left:
+                make_code(node.left, hf_code + left_node_char)
+
+            if node.right: 
+                make_code(node.right, hf_code + ritht_node_char)
+
+            if node.is_left_node():
+                hf_code_tbl[node.name] = hf_code
+            
+        make_code(hufuman_tree_root_node, left_node_char)
+        items = hf_code_tbl.items()
+        items.sort()
+        pprint.pprint(items)
+        return hf_code_tbl
+
+    def encode(self, input_file_object, out_file_object):
+        origin_content = input_file_object.read()
+        for c in origin_content:
+            out_file_object.write(self.code_tbl[c])
+
+class decoder:
+    def __init__(self, freq_tbl, left_char = '0', right_char = '1'):
+        self.left_char = left_char
+        self.right_char = right_char
+        self.hufuman_tree_root_node = build_hufuman_tree(freq_tbl)
+
+    def decode(self, input_file_object, out_file_object):
+        coded_content = input_file_object.read()
+
+        ## make a head node to make loop easier.
+        head_node = node("root",0, self.hufuman_tree_root_node, None)
+        curr_node = head_node
+        l = 0
+        while l < len(coded_content):
+            curr_char = coded_content[l]
+            print "--curr char: " + curr_char
+            l += 1
+            if (curr_char == self.left_char):
+                curr_node = curr_node.left 
+            elif (curr_char == self.right_char):
+                curr_node = curr_node.right
+            else:
+                print 'wrong code:' + curr_node
+
+            if not curr_node: 
+                print "someting wrong"
+                break
+            elif curr_node.is_left_node():
+                print "found left node:" + curr_node.name
+                out_file_object.write(curr_node.name)
+                curr_node = head_node
+
+def encode_test(filename):
+    #Test
+    encoder_0_1 = encoder(freq_tbl)
+    with open('udev.c','rb') as f:
+        with open('fun.c--','wb') as w:
+            encoder_0_1.encode(f,w)
+
+def decode_test(filename):
+    decode_0_1 = decoder(freq_tbl)
+    with open('fun.c--','r') as f:
+        with open('fun.c~~','wb') as w:
+            decode_0_1.decode(f,w)
+
+if __name__=="__main__":
+    encode_test("") 
+    decode_test("") 
