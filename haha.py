@@ -3,6 +3,7 @@ import fnmatch
 import cPickle
 import pprint
 
+### scan sample code to get frequecy of each ascii char
 '''
 def scan_char_frequency(sample_dir):
     count_tbl = {}
@@ -30,6 +31,7 @@ freq_tbl.sort()
 pprint.pprint(freq_tbl)
 '''
 
+### The frequecy Table
 freq_tbl = [
  ('\t', 3.538), ('\n', 3.855), (' ', 14.686), ('!', 0.157), ('"', 0.383), ('#', 0.205),
  ('$', 0.003), ('%', 0.128), ('&', 0.279), ("'", 0.098), ('(', 1.571), (')', 1.572),
@@ -49,7 +51,7 @@ freq_tbl = [
  ('x', 0.53), ('y', 0.482), ('z', 0.133), ('{', 0.33), ('|', 0.158), ('}', 0.33),
  ('~', 0.013)]
 
-
+### The hufuman tree node 
 class node:
     def __init__(self, name, value, left_child = None, right_child = None):
         self.name  = name
@@ -69,7 +71,7 @@ class node:
                 )
         return s
         
-
+### build hufuman tree via frequecy table
 def build_hufuman_tree(freq_tbl):
     ## convert k,v pair to node object
     node_list = [node(name, value, None, None) for name, value in freq_tbl]
@@ -87,11 +89,10 @@ def build_hufuman_tree(freq_tbl):
         node_list.remove(left)
         node_list.remove(right)
 
-    #print len(node_list)
-    #print str(node_list[0])
     tree_root_node = node_list[0]
     return tree_root_node
 
+### encode data via hufuman tree
 class encoder:
     def __init__(self, freq_tbl, left_char = '0', right_char = '1'):
         self.hufuman_tree_root_node = build_hufuman_tree(freq_tbl)
@@ -113,22 +114,33 @@ class encoder:
         make_code(hufuman_tree_root_node, left_node_char)
         items = hf_code_tbl.items()
         items.sort()
-        pprint.pprint(items)
+        #pprint.pprint(items)
         return hf_code_tbl
 
-    def encode(self, input_file_object, out_file_object):
+    def encode(self, input_file_object, out_file_object, line_width = 80):
         origin_content = input_file_object.read()
+        buff = '' 
         for c in origin_content:
-            out_file_object.write(self.code_tbl[c])
+            #out_file_object.write(self.code_tbl[c])
+            buff += self.code_tbl[c]
 
+        curr_pos = 0
+        while(curr_pos < len(buff)):
+            out_file_object.write(buff[curr_pos : curr_pos + line_width])
+            out_file_object.write('\n')
+            curr_pos += line_width;
+            
+### decode the data 
 class decoder:
     def __init__(self, freq_tbl, left_char = '0', right_char = '1'):
         self.left_char = left_char
         self.right_char = right_char
         self.hufuman_tree_root_node = build_hufuman_tree(freq_tbl)
-
+    
     def decode(self, input_file_object, out_file_object):
-        coded_content = input_file_object.read()
+        coded_content = ''
+        for line in input_file_object.readlines():
+            coded_content += line.rstrip('\r\n')
 
         ## make a head node to make loop easier.
         head_node = node("root",0, self.hufuman_tree_root_node, None)
@@ -152,19 +164,56 @@ class decoder:
                 out_file_object.write(curr_node.name)
                 curr_node = head_node
 
-def encode_test(filename):
-    #Test
-    encoder_0_1 = encoder(freq_tbl)
-    with open(filename,'rb') as f:
-        with open('fun.c--','wb') as w:
-            encoder_0_1.encode(f,w)
+def parse_option():
+    import argparse
+    parser = argparse.ArgumentParser(
+            description='The funy script to replace SRC code with two specified ascii characters. ')
+    g1 = parser.add_argument_group('options')
+    g1.add_argument('-c','--chars', action='store',
+            default='01',
+            help='specified two characters for encoding/decoding')
 
-def decode_test(filename):
-    decode_0_1 = decoder(freq_tbl)
-    with open(filename,'r') as f:
-        with open('fun.c~~','wb') as w:
-            decode_0_1.decode(f,w)
+    g1.add_argument('-o','--saveas', action='store', default='', 
+            help='the file name will be save as')
+    g1.add_argument('-v', action='store_true', help='version')
+    g1.add_argument('-d', action='store_true', help='decode')
+    g1.add_argument('files', action='store', nargs='*', help='file name')
+
+    args = parser.parse_args()
+    return args
 
 if __name__=="__main__":
-    encode_test("") 
-    decode_test("") 
+    
+    try:
+        args = parse_option()
+        if args:
+            chars = args.chars.replace('\\t', '\t')
+            left_char, right_char = chars[0], chars[1]
+            if left_char == right_char:
+                sys.stderr.write("*Error* Got two same char from argument. but need different chars.")
+                sys.exit(1)
+
+            saveas_filename = args.saveas
+            saveas = open(saveas_filename, 'wb') if saveas_filename else sys.stdout
+            
+            if args.d:  
+                dec = decoder(freq_tbl, left_char, right_char) 
+                if args.files:
+                    for f in args.files:
+                            with open(f, 'rb') as r:
+                                dec.decode(r, saveas)
+                else:
+                    dec.decode(sys.stdin, saveas)
+            else:
+                enc = encoder(freq_tbl, left_char, right_char)
+                if args.files:
+                    for f in args.files:
+                        with open(f, 'rb') as r:
+                            enc.encode(r, saveas)
+                else:
+                    enc.encode(sys.stdin, saveas)
+    except Exception as e:
+        print "*Error* recieved a exception.\n-- " + str(e)
+        sys.exit(1) 
+    else: 
+        sys.exit(0)
