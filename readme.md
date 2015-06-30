@@ -63,7 +63,7 @@ different charaters. like below:
     ``` shell
     $ echo '#include <stdio.h>\n int main() { puts("haha"); return 0; }' | python haha.py -c ' \t'  | tee fun.c
     ```
-    the output(all charaters is disappear. :langth:):
+    all charaters is disappear in the output. :laughing::laughing::laughing:
     ```
                                                                                                                                                           
 
