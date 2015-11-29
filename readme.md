@@ -83,3 +83,26 @@ different charaters. like below:
     haha
     ```
 
+
+# pr2.py
+A few wrapper functions of subprocess module to call external program.
+
+    ```python
+    # the simple wrapper of subprocess.Popen
+    >> simple_call(['grep', 'call', "p2.py"])
+
+    # run external program with shell.
+    >> shcall(['ls', '-l'])
+    >> shcall("ls -l")
+   
+    # call external programs like shell pipe.
+    >> pcall('cat p2.py').pipe('grep pcall').show()
+
+    #
+    # it support python callable object.
+    def myfunc(s):
+        return s.upper()
+    >> pcall('cat p2.py').pipe(myfunc).pipe('grep PCALL').show()
+
+    ```
+    
