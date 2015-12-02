@@ -28,6 +28,7 @@ def my_check_call(args):
         returncode = e.returncode
     except Exception as e:
         print 'run cmd failed. ' + str(e)
+        returncode = 0x0F
     finally:
         return returncode
 
@@ -144,12 +145,9 @@ class pcall():
             else:
                 # split to array if shell flag is false
                 if  isinstance(args, str):
-                    print 'l1'
                     args = shlex.split(args)
                 elif isinstance(args, list) or isinstance(args, tuple):
-                    print 'l2'
                 else:
-                    print 'l3'
                     raise Pr2Exception("Bad type for 'pcall'. only string,list and"
                                         " tuple are supported.")
 

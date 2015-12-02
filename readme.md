@@ -87,6 +87,7 @@ different charaters. like below:
 # pr2.py
 A few wrapper functions of subprocess module to call external program.
 
+- function: *simple_call*, *shcall*
 ```python
  # the simple wrapper of subprocess.Popen
  >> simple_call(['grep', 'call', "p2.py"])
@@ -98,8 +99,7 @@ A few wrapper functions of subprocess module to call external program.
  # call external programs like shell pipe.
  >> pcall('cat p2.py').pipe('grep pcall').show()
 
- #
- # it support python callable object.
+ # orit support python callable object.
  def myfunc(s):
      return s.upper()
  >> pcall('cat p2.py').pipe(myfunc).pipe('grep PCALL').show()
