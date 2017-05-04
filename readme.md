@@ -105,3 +105,19 @@ A few wrapper functions of subprocess module to call external program.
  >> pcall('cat p2.py').pipe(myfunc).pipe('grep PCALL').show()
 ```
     
+
+# sshutil.py
+A utility class for ssh operation.  
+
+- example.
+```python
+  # init a instance of ssh operation
+  sshopt = SSHOpt('envtest', user = 'xmbuild')
+  # sync local file './readme.html' to remote $HOME/, here the perfix '$-:' mean it is the
+  # path of remote side.
+  print sshopt.rsync(r'./readme.html', r'$-:~/')
+  # exec a command on directory '/tmp' of remote side, and print the output.
+  print sshopt.rexec('ls -l', '/tmp')
+  # exec a set of commands on the directory of remote side , and print the output.
+  print sshopt.rexec(['ls -l', 'ls *.xml | wc -l '], '/tmp')
+```
