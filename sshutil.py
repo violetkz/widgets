@@ -32,12 +32,14 @@ class SSHOptException(Exception):
 
 
 class SSHOpt:
-    ''' The wrapper of SSH command for remote host operations '''
+    ''' The wrapper of SSH command for remote host operations. 
+        Note: here we assume ssh client communicate with remote host with public
+              key rather than password.
+    '''
     def __init__(self, host, **kwargs):
 
         self.host = host
         self.user = kwargs.get('user')
-        self.passwd = kwargs.get('passwd') ## unused.
         self.keyfile = kwargs.get('key')
         
         if self.user:
@@ -183,13 +185,7 @@ def test_timeout():
     print sshopt._check_connect()
 
 
-
-## $ ./xmjob sles10x86 src-dir action
-## $ ./xmjob target-host <src-dir> <action>
-#     if src-dir is not specified, try to read from configure file.
-#     if action is not sepcified, by default, the tools will try
-#     to execute 'complie.*' in the root or build directory of src-dir
-#     in the remote target.
+## test 
 if __name__=="__main__":
     rhel_targets = ['tc_rhel5x86','tc_rhel5x64','tc_rhel6x86','tc_rhel6x64']
     sles_targets = ['tc_sles10x86','tc_sles10x64','tc_sles11x86','tc_sles11x64']
@@ -209,14 +205,14 @@ if __name__=="__main__":
             returncode = 0
 
     except (KeyboardInterrupt, SystemExit):
-        info('closing pool.')
         #Stops the worker processes immediately without completing outstanding
         #work. When the pool object is garbage collected terminate() will be
         #called immediately.
+        info('terminate pool.')
         pool.terminate()
         ## due to strange issue of std thread lib, here never come in. 
         ## refer to  thread lib doc on the official site.
-        pool.join()
+        #pool.join()
 
     except Exception as e:
         
